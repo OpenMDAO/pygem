@@ -1,10 +1,26 @@
 pygem_diamond is a python wrapper of the gem API using diamond 
 (OpenCSM and EGADS) underneath.
 
+First, pygem_diamond depends on the following libraries:
+
+OpenCASCADE
+Engineering Sketchpad
+GEM
+
+Tar files for Engineering Sketchpad and OpenCASCADE can be obtained at http://acdl.mit.edu/ESP/
+
+There is currently a github repo conaining GEM located at: https://github.com/OpenMDAO/GEM.
+
+Once you've obtained the necessary library souce code and built the libraries, you can now build pygem_diamond.
+
 To build a pygem_diamond binary egg:
 cd to the pygem directory (parent dir of pygem_diamond)
 python bld_pygem.py --gemroot=<dir containing GEM> --gemtype=diamond --casroot=<dir containing opencascade> --esp=<dir containing EngSketchPad> --clean --bdist_egg
 
+python bld_pygem.py --help will show you some additional options available to bld_pygem.
+
+
+In order to use pygem_diamond, you'll have to install it into your python environment.  One way to do this is to run easy_install on the binary egg that you built with the command shown above.  If you're a developer who will be making frequent updates to the pygem_diamond source code, you can instead install pygem_diamond as a 'develop' egg by passing a --develop arg to bld_pygem instead of --bdist_egg.  If you get import time errors saying it can't find libraries like libegads, you'll have to add the location of the 'lib' directory under pygem_diamond to your LD_LIBRARY_PATH (or equivalent).  If you install a binary_egg version of pygem_diamond into an openmdao virtual environment, then just deactivating and rectivating the environment should automatically update the LD_LIBRARY_PATH for you.
 
 To use the "gem" extension interactively 
 (after you've installed the pygem_diamond distribution)
@@ -24,7 +40,13 @@ To test the "gem" module in batch mode
 cd test
    python test_gem.py
 
+
+The following two test files are currently broken due to some recent
+API changes. They'll be fixed shortly.
+
    python demo_gem.py
       q             (to quit help)
 
    python opt_gem.py
+
+
