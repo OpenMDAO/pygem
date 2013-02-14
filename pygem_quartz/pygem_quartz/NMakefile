@@ -1,0 +1,26 @@
+#	NMakefile for pygem
+
+#
+#	targets for make
+#
+all	: pygem.c
+	@echo "Making test\gem.pyd..."
+	-del test\gem.pyd
+	-rmdir /S /Q build 
+	python setup.py build
+!IF "$(GEM_ARCH)" == "WIN32"
+	copy build\lib.win32-2.7\gem.pyd test 
+!ELSE
+	copy build\lib.win-amd64-2.7\gem.pyd test 
+!ENDIF
+	-rmdir /S /Q build 
+
+clean   :
+	@echo "Removing build tree..."
+	-del test\gem.pyd
+	-rmdir /S /Q build
+
+help    :
+	@echo "'make'           builds the programs"
+	@echo "'make clean'     clean up temporary files"
+	@echo "'make help'      print this listing"

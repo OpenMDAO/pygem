@@ -1,0 +1,39 @@
+pygem_quartz is a python wrapper of the gem API using quartz (Capri)
+underneath.
+
+To build a pygem_quartz binary egg:
+cd to the GEM directory (parent dir of pygem_quartz)
+python bld_pygem.py --gemtype=quartz --casroot=<dir containing opencascade> --esp=<dir containing EngSketchPad> --clean --bdist_egg
+
+
+Other options to bld_pygem.py include --gv to link in the gv viewer.
+
+NOTE: When installing into an OpenMDAO environment, make sure to use the
+'plugin install' command to install the egg, because it will automatically
+update the activate script to add any necessary entries to LD_LIBRARY_PATH
+(or equivalent) for you.  Otherwise you'll have to update LD_LIBRARY_PATH
+yourself.
+
+
+To use the "gem" extension interactively 
+(after you've installed the pygem_quartz distribution)
+========================================
+
+python
+>>>from pygem_quartz import gem
+
+... do stuff
+
+Ctrl-d to exit the interpreter when finished
+
+
+To test the "gem" module in batch mode
+======================================
+
+cd test
+   python test_gem.py
+
+   python demo_gem.py
+      q             (to quit help)
+
+   python opt_gem.py

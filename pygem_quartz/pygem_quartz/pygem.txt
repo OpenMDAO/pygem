@@ -1,0 +1,356 @@
+Help on module gem:
+
+NAME
+    gem
+
+FILE
+    /Users/dannenho/Projects/GEM/pygem/test/gem.so
+
+FUNCTIONS
+    add2Model(...)
+        Add a BRep to a static Model
+        
+        Input arguments:
+           modelObj    
+           brepObj     
+           (xform)     <optional>
+        Returns:        
+           <none>
+    
+    copyModel(...)
+        Copy a Model
+        Input arguments:
+           oldModelObj 
+        Returns:        
+           newModelObj
+    
+    destroyDRep(...)
+        Destroy a DRep and its contents
+        
+        Input arguments:
+           drepObj     
+        Returns         
+           <none>
+    
+    getAttribute(...)
+        Get Attribute of a GEMobject
+        
+        Input arguments:
+           gemObj      
+           otype       either 'CONTEXT', 'MODEL', 'BRANCH', 'PARAM', 'BREP',
+                              'NODE', 'EDGE', 'LOOP', 'FACE', or 'SHELL'
+           eindex      <bias-1>
+           aindex      <bias-1>
+        Returns:        
+           aname       
+           (values)
+    
+    getBRepInfo(...)
+        Get info about a BRep
+        
+        Input arguments:
+           brepObj     
+        Returns:        
+           (box)       
+           type        
+           nnode       
+           nedge       
+           nloop       
+           nface       
+           nshell      
+           nattr
+    
+    getBRepOwner(...)
+        Get Model containing BRep
+        
+        Input arguments:
+           brepObj     
+        Returns:        
+           modelObj    
+           instance    
+           branch
+    
+    getBranch(...)
+        Get info about a Branch in a Model
+        
+        Input arguments:
+           modelObj    
+           ibranch     <bias-1>
+        Returns:        
+           bname       
+           btype       
+           suppress    
+           (parents)   
+           (children)  
+           nattr
+    
+    getEdge(...)
+        Get data for an Edge in a BRep
+        
+        Input arguments:
+           brepObj     
+           iedge       <bias-1>
+        Returns:        
+           (tlimit)    
+           (nodes)     
+           (faces)     
+           nattr
+    
+    getFace(...)
+        Get info about a Face in a BRep
+        
+        Input arguments:
+           brepObj     
+           iface       <bias-1>
+        Returns:        
+           ID          
+           (uvbox)     
+           norm        
+           (loops)     
+           nattr
+    
+    getLoop(...)
+        Get info about a Loop in a BRep
+        
+        Input arguments:
+           brepObj     
+           iloop       <bias-1>
+        Returns:        
+           face        
+           type        
+           (edges)     
+           nattr
+    
+    getMassProps(...)
+        Get mass properties about a BRep entity
+        
+        Input arguments:
+           brepObj     
+           etype       either 'FACE', 'SHELL', or 'BREP'
+           eindex      <bias-1>
+        Returns:        
+           (props)
+    
+    getModel(...)
+        Get info about a Model
+        
+        Input arguments:
+           modelObj    
+        Returns:        
+           server      
+           filename    
+           modeler     
+           uptodate    
+           (BReps)     
+           nparam      
+           nbranch     
+           nattr
+    
+    getNode(...)
+        Get info about a Node in a BRep
+        
+        Input arguments:
+           brepObj     
+           inode       <bias-1>
+        Returns:        
+           (xyz)       
+           nattr
+    
+    getParam(...)
+        Get info about a Parameter in a Model
+        
+        Input arguments:
+           modelObj    
+           iparam      <bias-1>
+        Returns:        
+           pname       
+           bflag       
+           order       
+           (values)    
+           nattr
+    
+    getShell(...)
+        Get info about a Shell in a BRep
+        
+        Input arguments:
+           brepObj     
+           ishell      <bias-1>
+        Returns:        
+           type        
+           (faces)     
+           nattr
+    
+    getTessel(...)
+        Get tessellation data for a Face in a BRep
+        
+        Input arguments:
+           drepObj     
+           ibrep       <bias-1>
+           iface       <bias-1>
+        Returns:        
+           xyzArray    
+           uvArray     
+           connArray
+    
+    getWire(...)
+        Get info about a Wire in a BRep
+        
+        Input arguments:
+           brepObj     
+        Returns:        
+           (loops)
+    
+    initialize(...)
+        Initialize GEM
+        
+        Input arguments:
+           <none>      
+        Returns:        
+           contextObj
+    
+    isEquivalent(...)
+        Determine is two BRep entities are the same
+        
+        Input arguments:
+           etype       either 'NODE', 'EDGE', or 'FACE'
+           brepObj1    
+           eindex1     <bias-1>
+           brepObj2    
+           eindex2     <bias-1>
+        Returns:        
+           bool
+    
+    loadModel(...)
+        Load a Model from a file
+        
+        Input arguments:
+           contextObj  
+           filename    
+        Returns:        
+           modelObj
+    
+    newDRep(...)
+        Make a new DRep
+        
+        Input arguments:
+           modelObj    
+        Returns:        
+           drepObj
+    
+    plotDRep(...)
+        Plot a DRep
+        
+        Input arguments:
+           drepObj     
+        Returns         
+           <none>
+    
+    regenModel(...)
+        Regenerate a non-static Model
+        
+        Input arguments:
+           modelObj    
+        Returns:        
+           <none>
+    
+    releaseModel(...)
+        Release a Model and all of its storage
+        
+        Input arguments:
+           modelObj    
+        Returns:        
+           <none>
+    
+    retAttribute(...)
+        Return Attribute of a GEMobject
+        
+        Input arguments:
+           gemObj      
+           otype       either 'CONTEXT', 'MODEL', 'BRANCH', 'PARAM', 'BREP',
+                              'NODE', 'EDGE', 'LOOP', 'FACE', or 'SHELL'
+           eindex      <bias-1>
+           name        
+        Returns:        
+           aindex      <bias-1>
+           (values)
+    
+    saveModel(...)
+        Save an up-to-date Model
+        
+        Input arguments:
+           modelObj    
+           filename    
+        Returns:        
+           <none>
+    
+    setAttribute(...)
+        Set an Attribute for a GEMobject
+        
+        Input arguments:
+           gemObj      
+           otype       either 'CONTEXT', 'MODEL', 'BRANCH', 'PARAM', 'BREP',
+                              'NODE', 'EDGE', 'LOOP', 'FACE', or 'SHELL'
+           eindex      <bias-1>
+           name        
+           (values)    
+        Returns:        
+           <none>
+    
+    setParam(...)
+        Set new value for a driving Parameter
+        
+        Input arguments:
+           modelObj    
+           iparam      <bias-1>
+           (values)    
+        Returns:        
+           <none>
+    
+    setSuppress(...)
+        Change suppression state for a Branch
+        
+        Input arguments:
+           modelObj    
+           ibranch     <bias-1>
+           istate      
+        Returns:        
+           <none>
+    
+    solidBoolean(...)
+        Execute solid boolean operation
+        
+        Input arguments:
+           brepObj1    
+           brepObj2    
+           type        either 'INTERSECT', 'SUBTRACT', or 'UNION'
+           (xform)     <optional>
+        Returns:        
+           modelObj
+    
+    staticModel(...)
+        Generate empty static Model
+        
+        Input arguments:
+           contextObj  
+        Returns:        
+           modelObj
+    
+    terminate(...)
+        Terminate GEM
+        
+        Input arguments:
+           contextObj  
+        Returns:        
+           <none>
+    
+    tesselDRep(...)
+        Tessellate a BRep into a DRep
+        
+        Input arguments:
+           drepObj     
+           ibrep       <bias-1>
+           maxang      
+           maxlen      
+           maxsag      
+        Returns:        
+           <none>

@@ -1,0 +1,30 @@
+pygem_diamond is a python wrapper of the gem API using diamond 
+(OpenCSM and EGADS) underneath.
+
+To build a pygem_diamond binary egg:
+cd to the pygem directory (parent dir of pygem_diamond)
+python bld_pygem.py --gemroot=<dir containing GEM> --gemtype=diamond --casroot=<dir containing opencascade> --esp=<dir containing EngSketchPad> --clean --bdist_egg
+
+
+To use the "gem" extension interactively 
+(after you've installed the pygem_diamond distribution)
+========================================
+
+python
+>>>from pygem_diamond import gem
+
+... do stuff
+
+Ctrl-d to exit the interpreter when finished
+
+
+To test the "gem" module in batch mode
+======================================
+
+cd test
+   python test_gem.py
+
+   python demo_gem.py
+      q             (to quit help)
+
+   python opt_gem.py

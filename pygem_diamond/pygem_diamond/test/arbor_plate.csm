@@ -1,0 +1,73 @@
+# default design parameters
+despmtr   length     6.50
+despmtr   thickness  1.5 
+despmtr   corner_rad .25
+despmtr   cut1 .75
+despmtr   cut2 1.25
+despmtr   cut3 1.5
+despmtr   ar1 .8 #aspect ratio for triangles, 1 for equilateral
+despmtr   cut4 3.0
+despmtr   ar2  .6
+
+
+set diag sqrt(2*(corner_rad^2))
+set midarc sqrt(.5*(diag-corner_rad)^2)
+set shortl length-(corner_rad)
+
+
+#plate 
+box 0 0 0 length length thickness
+patbeg i 4
+    skbeg 0 0 0
+        linseg corner_rad 0 0
+        #linseg 0 corner_rad 0
+        cirarc  midarc midarc 0 0 corner_rad 0
+        linseg 0 0 0
+    skend
+    extrude 0 0 thickness 
+    rotatez i*90 length/2 length/2
+    subtract 
+patend
+
+cylinder 0 length/2 0 0 length/2 thickness cut1
+subtract
+
+cylinder length length/2 0 length length/2 thickness cut2
+subtract
+
+set h sqrt(hypot(cut3,cut3/2)^2-(cut3/2)^2)
+skbeg 0 0 0
+    linseg cut3 0 0
+    linseg cut3/2 ar1*h 0 
+    linseg 0 0 0
+skend
+extrude 0 0 thickness 
+translate length/2-cut3/2 0 0
+subtract 
+
+set h sqrt(hypot(cut4,cut4/2)^2-(cut4/2)^2)
+skbeg 0 0 0
+    linseg cut4 0 0
+    linseg cut4/2 -ar2*h 0 
+    linseg 0 0 0
+skend
+extrude 0 0 thickness 
+translate length/2-cut4/2 length 0
+subtract 
+
+end
+
+#plate2
+
+skbeg 0 corner_rad 0
+    linseg 0 shortl 0 #left
+    cirarc midarc length-midarc 0   corner_rad length 0 #top left
+    linseg shortl length 0 #top 
+    cirarc length-midarc length-midarc 0 length length-corner_rad 0 #top right
+    linseg length corner_rad 0 #right 
+    cirarc length-midarc midarc 0 length-corner_rad 0 0 #bottom right
+    linseg corner_rad 0 0 #bottom
+    cirarc midarc midarc 0 0 corner_rad 0 #bottom left
+skend
+translate 1.2*length 0 0
+extrude 0 0 thickness
