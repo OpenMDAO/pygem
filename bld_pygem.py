@@ -16,7 +16,7 @@ def get_osx_distutils_files(startdir='.'):
     general routine.
     """
     objfile = libfile = None
-    startdir = os.path.abspath(os.path.expanduser(startdir))
+    startdir = expand_path(startdir)
     for path, dirlist, filelist in os.walk(startdir):
         for name in filelist:
             fpath = os.path.join(path, name)
@@ -127,7 +127,7 @@ def _get_occ_libs(rootpath, libpath):
     return [join(libpath, lib) for lib in libs]+extras
 
 def _get_capri_libs(libpath):
-    libpath = expanduser(libpath)
+    libpath = expand_path(libpath)
     if sys.platform.startswith('darwin'):
         libs = fnmatch.filter(os.listdir(libpath), "*.SO")
         libs.extend(fnmatch.filter(os.listdir(libpath), "*.dylib"))
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     env = {
         'GEM_ARCH': arch,
         'GEM_TYPE': options.gem_type,
-        'GEM_BLOC': os.path.expanduser(options.gemroot),
+        'GEM_BLOC': expand_path(options.gemroot),
         lib_path_tup[0]: lib_path_tup[1],
     }
     
@@ -273,8 +273,8 @@ if __name__ == '__main__':
         if sys.platform.startswith('win'):
             env['CASARCH'] = env['CASARCH']+'/vc8'
     elif options.gem_type == 'quartz':
-        env['CAPRILIB'] = expanduser(options.caprilib)
-        env['CAPRIINC'] = expanduser(options.capriinc)
+        env['CAPRILIB'] = expand_path(options.caprilib)
+        env['CAPRIINC'] = expand_path(options.capriinc)
         env['CAPRIkey'] = _get_capri_key(env['CAPRILIB'])
         if sys.platform.startswith('linux'):
             #env['LDSHARED'] = '"gcc -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-Bsymbolic-functions -Wl,-z,relro"'
