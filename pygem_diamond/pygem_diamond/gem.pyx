@@ -3,6 +3,7 @@ from gem cimport *
 
 import cython
 from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
 from cpython cimport PyObject, Py_INCREF
 
 import numpy as np
@@ -349,7 +350,7 @@ cdef class DRep(HasAttrs):
     cdef void* get_entity(self):
         return <void*>self.drep
 
-    def tesselate(self, int ibrep, double maxang, double maxlen, double maxsag):
+    def tessellate(self, int ibrep, double maxang, double maxlen, double maxsag):
         cdef:
             int status
             int typ, nnode, nedge, nloop, nface, nshell, nattr
@@ -366,7 +367,7 @@ cdef class DRep(HasAttrs):
         if maxang <=0. or maxlen <=0. or maxsag <= 0.:
             status = gem_getDRepInfo(self.drep, &model, &nbound, &nattr)
             if status != GEM_SUCCESS:
-                raise_exception('failed to get DRep info', status, 'GemDRep.tesselate')
+                raise_exception('failed to get DRep info', status, 'GemDRep.tessellate')
 
             box[0] = box[1] = box[2] = 1e20
             box[3] = box[4] = box[5] = -1e20
@@ -374,14 +375,14 @@ cdef class DRep(HasAttrs):
             status = gem_getModel(model, &server, &filename, &modeler,
                             &uptodate, &nbrep, &breps, &nparam, &nbranch, &nattr)
             if status != GEM_SUCCESS:
-                raise_exception('failed to get Model info', status, 'GemDRep.tesselate')
+                raise_exception('failed to get Model info', status, 'GemDRep.tessellate')
 
             for i in range(1,nbrep+1):
                 if ibrep == 0 or i == ibrep:
                     status = gem_getBRepInfo(breps[i-1], bbox, &typ, &nnode,
                                              &nedge, &nloop, &nface, &nshell, &nattr)
                     if status != GEM_SUCCESS:
-                        raise_exception('failed to get BRep info', status, 'GemDRep.tesselate')
+                        raise_exception('failed to get BRep info', status, 'GemDRep.tessellate')
 
                     if bbox[0] < box[0]:
                         box[0] = bbox[0]
@@ -414,16 +415,16 @@ cdef class DRep(HasAttrs):
         drep = self.drep
         nbreps = drep.nBReps
         if <long>self.drep.model not in _gemObjects:
-            raise_exception('failed to tesselate DRep: bad model')
+            raise_exception('failed to tessellate DRep: bad model')
         status = gem_tesselDRep(self.drep, ibrep, maxang, maxlen, maxsag)
 
         if status != GEM_SUCCESS:
-            raise_exception('failed to tesselate DRep', status, 'GemDRep.tesselate')
+            raise_exception('failed to tessellate DRep', status, 'GemDRep.tessellate')
 
     def getTessel(self, int ibrep, int iface):
         cdef:
-            int status, npts, ntris, *tris, ndims
-            double *xyz
+            int status, npts, ntris, *tris, *tris_copy, ndims
+            double *xyz, *xyz_copy
             gemPair bface
             np.npy_intp dims[2]
 
@@ -438,16 +439,19 @@ cdef class DRep(HasAttrs):
         ndims = 2;
         dims[0] = npts;
         dims[1] = 3;
-        #xyz_nd  = PyArray_SimpleNew(rank, dims, NPY_DOUBLE);
-        #memcpy(((PyArrayObject*)(xyz_nd))->data, (void*)xyz, 3*npts*sizeof(double));
-        xyz_nd = npy_arr_from_data(<void*>xyz, ndims, dims, np.NPY_DOUBLE, 1)
+        #xyz_nd = np.PyArray_SimpleNew(ndims, dims, np.NPY_DOUBLE);
+        xyz_copy = <double*>malloc(3*npts*sizeof(double))
+        memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
+        xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
+        np.PyArray_UpdateFlags(xyz_nd, np.NPY_OWNDATA)   
 
         dims[0] = ntris;
         dims[1] = 3;
-        #tri_nd   = PyArray_SimpleNew(rank, dims, NPY_INT);
-        #memcpy(((PyArrayObject*)(tri_nd))->data, (void*)tris, 3*ntris*sizeof(int));
-        tri_nd = npy_arr_from_data(<void*>tris, ndims, dims, np.NPY_INT, 1)
-
+        #tri_nd   = np.PyArray_SimpleNew(ndims, dims, np.NPY_INT);
+        tris_copy = <int*>malloc(3*ntris*sizeof(int))
+        memcpy(tris_copy, <void*>tris, 3*ntris*sizeof(int))
+        tri_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_INT, tris_copy)
+        np.PyArray_UpdateFlags(tri_nd, np.NPY_OWNDATA)
         return (tri_nd, xyz_nd)
 
 

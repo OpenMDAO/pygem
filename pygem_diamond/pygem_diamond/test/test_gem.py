@@ -267,8 +267,8 @@ class PygemTestCase(unittest.TestCase):
         myContext = gem.Context()
         myModel = myContext.loadModel(sample_file)
         myDRep = myModel.newDRep()
-        dbg("in test, DRep created. tesselating...")
-        myDRep.tesselate(0, 0, 0, 0)
+        dbg("in test, DRep created. tessellating...")
+        myDRep.tessellate(0, 0, 0, 0)
         dbg("tesselDRep returned. calling getTessel")
 
         triArray, xyzArray = myDRep.getTessel(1, 1)
