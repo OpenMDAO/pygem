@@ -1,6 +1,8 @@
 
 import os
 
+import numpy as np
+
 from openmdao.main.api import implements
 from openmdao.main.interfaces import IParametricGeometry
 
@@ -120,3 +122,57 @@ class GEMParametricGeometry(object):
             ]
         }
 
+
+class GEMGeometry(object):
+    '''A wrapper for a GEM object that respresents a specific instance of a
+    geometry at a designated set of parameters. Parameters are not modifiable.
+    This object is able to provide data for visualization.
+    
+    TODO: Add feature suppression.
+    TODO: Add query of the BRep.
+    TODO: Add DRep manipulation.
+    '''
+    
+    def __init__(self):
+        
+        # GEM stores the geometry model in a context which originates in the
+        # GEMParametricGeometry object.
+        self._model  = None
+        
+        
+    def return_visualization_data(self, iBRep):
+        '''Returns ndarrays of triangle coordinates and connectivities for the
+        chosen brep.'''
+                  
+        server, filename, modeler, uptodate, myBReps, nparam, \
+            nbranch, nattr = self._model.getInfo() 
+        
+        # Need number of faces
+        box, typ, nnode, nedge, nloop, nface, nshell, \
+                    nattr = myBReps[iBRep].getInfo()
+        
+        myDRep = self._model.newDRep()
+        
+        # Tesselate our BRep
+        # BRep, maxang, maxlen, maxasg
+        myDRep.tesselate(iBRep, 0, 0, 0)
+        
+        # Get the tesselation for each face
+        data_triArray = []
+        data_xyzArray = []
+        for iface in range(1, nface+1):
+            triArray, xyzArray = myDRep.getTessel(iBRep+1, iface)
+            
+            # pyV3D wants 1D arrays of single precision
+            triArray = triArray.astype(np.float32).flatten()
+            xyzArray = xyzArray.astype(np.float32).flatten()
+            
+            data_triArray.append(triArray)
+            data_xyzArray.append(xyzArray)
+            
+            
+        # Return single arrays containing all faces
+        full_triArray = np.hstack(data_triArray)
+        full_xyzArray = np.hstack(data_xyzArray)
+        
+        return full_triArray, full_xyzArray
