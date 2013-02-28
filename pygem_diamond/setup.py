@@ -61,7 +61,7 @@ module1 = Extension(pkg_name + '.gem',
 
 setup(
     name=pkg_name,
-    version='0.9.4',
+    version='0.9.5',
     description='Python interface to GEM using OpenCSM and EGADS',
     zip_safe=False,
     cmdclass = {'build_ext': build_ext},
