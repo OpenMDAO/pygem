@@ -1,6 +1,8 @@
 
 import os
 
+import numpy as np
+
 from openmdao.main.api import implements
 from openmdao.main.interfaces import IParametricGeometry
 
@@ -120,3 +122,72 @@ class GEMParametricGeometry(object):
             ]
         }
 
+
+class GEMGeometry(object):
+    '''A wrapper for a GEM object that respresents a specific instance of a
+    geometry at a designated set of parameters. Parameters are not modifiable.
+    This object is able to provide data for visualization.
+    
+    TODO: Add feature suppression.
+    TODO: Add query of the BRep.
+    TODO: Add DRep manipulation.
+    '''
+    
+    def __init__(self):
+        
+        # GEM stores the geometry model in a context which originates in the
+        # GEMParametricGeometry object.
+        self._model  = None
+        
+        
+    def return_visualization_data(self, iBRep=None):
+        '''Returns a list of tuples containing the ndarrays of triangle
+        coordinates and connectivities for the chosen brep.
+        
+        iBRep: int
+            Index of BRep to visualize. Default is None, which shows all
+            BReps in model
+        '''
+                  
+        server, filename, modeler, uptodate, myBReps, nparam, \
+            nbranch, nattr = self._model.getInfo() 
+        
+        if iBRep:
+            all_BReps = [iBRep]
+        else:
+            all_BReps = range(0, len(myBReps))
+           
+        data = [] 
+        for iBRep in all_BReps:
+            
+            # Need number of faces
+            box, typ, nnode, nedge, nloop, nface, nshell, \
+                        nattr = myBReps[iBRep].getInfo()
+            
+            myDRep = self._model.newDRep()
+            
+            # Tesselate our BRep
+            # BRep, maxang, maxlen, maxasg
+            myDRep.tessellate(iBRep, 0, 0, 0)
+            
+            # Get the tessellation for each face
+            data_triArray = []
+            data_xyzArray = []
+            for iface in range(1, nface+1):
+                triArray, xyzArray = myDRep.getTessel(iBRep+1, iface)
+                
+                # pyV3D wants 1D arrays of single precision
+                xyzArray = xyzArray.astype(np.float32).flatten()
+                triArray = triArray.astype(np.int32).flatten()
+                
+                data_xyzArray.append(xyzArray)
+                data_triArray.append(triArray)
+                
+                
+            # Return single arrays containing all faces
+            full_xyzArray = np.hstack(data_xyzArray)
+            full_triArray = np.hstack(data_triArray)
+            
+            data.append( (full_xyzArray, full_triArray) )
+        
+        return data
