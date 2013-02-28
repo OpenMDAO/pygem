@@ -9,17 +9,6 @@ from openmdao.main.interfaces import IParametricGeometry
 from pygem_diamond import gem
 
 
-# class GEMStaticGeometry(object):
-#     """A wrapper for a GEM object without parameters.  This object implements the
-#     IStaticGeometry interface.
-#     """
-#     def __init__(self):
-#         pass
-
-#     def get_tris(self):
-#         pass
-
-
 class GEMParametricGeometry(object):
     """A wrapper for a GEM object with modifiable parameters.  This object
     implements the IParametricGeometry interface.
@@ -27,12 +16,12 @@ class GEMParametricGeometry(object):
 
     implements(IParametricGeometry)
 
-    def __init__(self, mfile=''):
+    def __init__(self):
         super(GEMParametricGeometry, self).__init__()
         self._model = None
         self._callbacks = []
         self._context = gem.Context()
-        self._model_file = mfile
+        self._model_file = None
 
     @property
     def model_file(self):
@@ -122,6 +111,13 @@ class GEMParametricGeometry(object):
             ]
         }
 
+    def get_geometry(self):
+        if self._model is not None:
+            geom = GEMGeometry()
+            geom._model = self._model
+            return geom
+        return None
+
 
 class GEMGeometry(object):
     '''A wrapper for a GEM object that respresents a specific instance of a
@@ -168,7 +164,7 @@ class GEMGeometry(object):
             
             # Tesselate our BRep
             # BRep, maxang, maxlen, maxasg
-            myDRep.tessellate(iBRep, 0, 0, 0)
+            myDRep.tessellate(iBRep+1, 0, 0, 0)
             
             # Get the tessellation for each face
             data_triArray = []
