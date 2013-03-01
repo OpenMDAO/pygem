@@ -141,17 +141,23 @@ class GEMGeometry(object):
         coordinates and connectivities for the chosen brep.
         
         iBRep: int
-            Index of BRep to visualize. Default is None, which shows all
-            BReps in model
+            Index (starting at 0) of BRep to visualize. If not supplied, all BReps
+            will be visualized.  
         '''
                   
         server, filename, modeler, uptodate, myBReps, nparam, \
             nbranch, nattr = self._model.getInfo() 
         
-        if iBRep:
-            all_BReps = [iBRep]
-        else:
+        myDRep = self._model.newDRep()
+        
+        # Tesselate our DRep
+        # BRep, maxang, maxlen, maxasg
+        if iBRep is None:
+            myDRep.tessellate(0, 0, 0, 0)  # do all BReps
             all_BReps = range(0, len(myBReps))
+        else:
+            myDRep.tessellate(iBRep+1, 0, 0, 0) # do only specified BRep
+            all_BReps = [iBRep]
            
         data = [] 
         for iBRep in all_BReps:
@@ -159,13 +165,7 @@ class GEMGeometry(object):
             # Need number of faces
             box, typ, nnode, nedge, nloop, nface, nshell, \
                         nattr = myBReps[iBRep].getInfo()
-            
-            myDRep = self._model.newDRep()
-            
-            # Tesselate our BRep
-            # BRep, maxang, maxlen, maxasg
-            myDRep.tessellate(iBRep+1, 0, 0, 0)
-            
+                        
             # Get the tessellation for each face
             data_triArray = []
             data_xyzArray = []
