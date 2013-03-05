@@ -136,54 +136,55 @@ class GEMGeometry(object):
         self._model  = None
         
         
-    def return_visualization_data(self, iBRep=None):
-        '''Returns a list of tuples containing the ndarrays of triangle
-        coordinates and connectivities for the chosen brep.
+    def get_visualization_data(self, wv, iBRep=None):
+        '''Fills the given WV_Wrapper object with data for faces,
+        edges, colors, etc.
         
+        wv: WV_Wrapper object
+
         iBRep: int
             Index (starting at 0) of BRep to visualize. If not supplied, all BReps
             will be visualized.  
         '''
-                  
-        server, filename, modeler, uptodate, myBReps, nparam, \
-            nbranch, nattr = self._model.getInfo() 
+        if self._model is None:
+            return []
+
+        self._model.make_tess(wv, iBRep)
+
+        # server, filename, modeler, uptodate, myBReps, nparam, \
+        #     nbranch, nattr = self._model.getInfo() 
         
-        myDRep = self._model.newDRep()
+        # myDRep = self._model.newDRep()
         
-        # Tesselate our DRep
-        # BRep, maxang, maxlen, maxasg
-        if iBRep is None:
-            myDRep.tessellate(0, 0, 0, 0)  # do all BReps
-            all_BReps = range(0, len(myBReps))
-        else:
-            myDRep.tessellate(iBRep+1, 0, 0, 0) # do only specified BRep
-            all_BReps = [iBRep]
-           
-        data = [] 
-        for iBRep in all_BReps:
+        # # Tesselate our DRep
+        # # BRep, maxang, maxlen, maxasg
+        # if iBRep is None:
+        #     iBRep = -1
+        #     BReps = range(0, len(myBReps))
+        # else:
+        #     BReps = [iBRep]
+
+        # myDRep.tessellate(iBRep+1, 0, 0, 0)
+
+        # data = [] 
+        # for iBRep in all_BReps:
             
-            # Need number of faces
-            box, typ, nnode, nedge, nloop, nface, nshell, \
-                        nattr = myBReps[iBRep].getInfo()
+        #     # Need number of faces
+        #     box, typ, nnode, nedge, nloop, nface, nshell, \
+        #                 nattr = myBReps[iBRep].getInfo()
                         
-            # Get the tessellation for each face
-            data_triArray = []
-            data_xyzArray = []
-            for iface in range(1, nface+1):
-                triArray, xyzArray = myDRep.getTessel(iBRep+1, iface)
+        #     # Get the tessellation for each face
+        #     data_triArray = []
+        #     data_xyzArray = []
+        #     for iface in range(1, nface+1):
+        #         triArray, xyzArray = myDRep.getTessel(iBRep+1, iface)
                 
-                # pyV3D wants 1D arrays of single precision
-                xyzArray = xyzArray.astype(np.float32).flatten()
-                triArray = triArray.astype(np.int32).flatten()
-                
-                data_xyzArray.append(xyzArray)
-                data_triArray.append(triArray)
+        #         # pyV3D wants 1D arrays of single precision
+        #         data_xyzArray.append(xyzArray.astype(np.float32).flatten())
+        #         data_triArray.append(triArray.astype(np.int32).flatten())
                 
                 
-            # Return single arrays containing all faces
-            full_xyzArray = np.hstack(data_xyzArray)
-            full_triArray = np.hstack(data_triArray)
-            
-            data.append( (full_xyzArray, full_triArray) )
+        #     # Return single arrays containing all faces
+        #     data.append( (np.hstack(data_xyzArray), np.hstack(data_triArray)) )
         
-        return data
+        # return data

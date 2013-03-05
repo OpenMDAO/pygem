@@ -439,7 +439,6 @@ cdef class DRep(HasAttrs):
         ndims = 2;
         dims[0] = npts;
         dims[1] = 3;
-        #xyz_nd = np.PyArray_SimpleNew(ndims, dims, np.NPY_DOUBLE);
         xyz_copy = <double*>malloc(3*npts*sizeof(double))
         memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
         xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
@@ -447,12 +446,36 @@ cdef class DRep(HasAttrs):
 
         dims[0] = ntris;
         dims[1] = 3;
-        #tri_nd   = np.PyArray_SimpleNew(ndims, dims, np.NPY_INT);
         tris_copy = <int*>malloc(3*ntris*sizeof(int))
         memcpy(tris_copy, <void*>tris, 3*ntris*sizeof(int))
         tri_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_INT, tris_copy)
         np.PyArray_UpdateFlags(tri_nd, np.NPY_OWNDATA)
         return (tri_nd, xyz_nd)
+
+    def getDiscrete(self, int ibrep, int iedge):
+        cdef:
+            int status, npts, ndims
+            double *xyz, *xyz_copy
+            gemPair bedge
+            np.npy_intp dims[2]
+
+        _check_gemobj(self)
+
+        bedge.BRep = ibrep
+        bedge.index = iedge
+        status = gem_getDiscrete(self.drep, bedge, &npts, &xyz)
+        if status != GEM_SUCCESS:
+            raise_exception('gem_getDiscrete failed', status)
+
+        ndims = 2;
+        dims[0] = npts;
+        dims[1] = 3;
+        xyz_copy = <double*>malloc(3*npts*sizeof(double))
+        memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
+        xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
+        np.PyArray_UpdateFlags(xyz_nd, np.NPY_OWNDATA)
+
+        return xyz_nd 
 
 
 cdef object createPyDRep(gemDRep* drep):
@@ -891,6 +914,78 @@ cdef class Model(HasAttrs):
             raise_exception('failed to set parameter %s' % param_id,
                             status, 'gem.setParam')
 
+    def get_bounding_box(self, iBRep=None):
+        server, filename, modeler, uptodate, BReps, nparam, \
+            nbranch, nattr = self.getInfo() 
+        
+        if iBRep:
+            BReps = [BReps[iBRep]]
+
+        if BReps:
+            box = [1e99, 1e99, 1e99, -1e99, -1e99, -1e99]
+            for BRep in BReps:
+                tup = BRep.getInfo()
+                bx = tup[0]
+                if (bx[0] < box[0]):
+                    box[0] = bx[0]
+                if (bx[1] < box[1]):
+                    box[1] = bx[1]
+                if (bx[2] < box[2]):
+                    box[2] = bx[2]
+
+                if (bx[3] > box[3]):
+                    box[3] = bx[3]
+                if (bx[4] > box[4]):
+                    box[4] = bx[4]
+                if (bx[5] > box[5]):
+                    box[5] = bx[5]
+        else:
+            box = [0]*6
+
+        return box
+
+    def make_tess(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):    
+        box = self.get_bounding_box(iBRep)
+
+        size = box[3] - box[0]
+        if (size < box[4]-box[1]):
+            size = box[4] - box[1]
+        if (size < box[5]-box[2]):
+            size = box[5] - box[2]
+
+        focus = [0.]*4
+        focus[0] = 0.5*(box[0] + box[3])
+        focus[1] = 0.5*(box[1] + box[4])
+        focus[2] = 0.5*(box[2] + box[5])
+        focus[3] = size
+
+        server, filename, modeler, uptodate, breps, nparam, \
+            nbranch, nattr = self.getInfo() 
+        
+        drep = self.newDRep()
+        
+        if iBRep is not None:
+            breps = [breps[iBRep]]
+            iBRep += 1
+        else:
+            iBRep = 0
+
+        drep.tessellate(iBRep, angle, relSide*focus[3], relSag*focus[3])
+
+        for i, brep in enumerate(breps):
+            bx, typ, nnode, nedge, nloop, nface, nshell, nattr = brep.getInfo()
+
+            for j in range(1, nface+1):
+                tris, xyzs = drep.getTessel(i+1, j)
+                wv.set_face_data(xyzs.astype(np.float32).flatten(), 
+                                 tris.astype(np.int32).flatten(), bbox=box)
+
+            for j in range(1, nedge+1):
+                points = drep.getDiscrete(i+1, j)
+                if len(points) < 2:
+                    continue
+                wv.set_edge_data(points.astype(np.float32).flatten())
+
     def __dealloc__(self):
         self.release()
 
@@ -981,6 +1076,5 @@ def solidBoolean(BRep brep1, BRep brep2, optype, xform=None):
         raise_exception(status, 'gemSolidBoolean')
 
     return createPyModel(model)
-
 
 
