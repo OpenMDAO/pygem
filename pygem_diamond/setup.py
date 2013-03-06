@@ -29,7 +29,8 @@ caslib = os.path.join(os.environ['CASROOT'], 'lib')
 
 print '\nMaking "gem.so" for "%s" (on %s)\n' % (gem_type, gem_arch)
 
-gem_include_dirs = [os.path.join(os.path.dirname(gemlib),'include'), numpy_include]
+gem_include_dirs = [os.path.join(os.path.dirname(gemlib),'include'), 
+                    numpy_include, egadsinc]
 gem_extra_compile_args = []
 gem_extra_link_args = []
 gem_libraries = ['gem', 'diamond', 'egads']
@@ -61,7 +62,7 @@ module1 = Extension(pkg_name + '.gem',
 
 setup(
     name=pkg_name,
-    version='0.9.5',
+    version='0.9.6',
     description='Python interface to GEM using OpenCSM and EGADS',
     zip_safe=False,
     cmdclass = {'build_ext': build_ext},

@@ -387,10 +387,10 @@ cdef extern from "gem.h":
     
     # # Returns the polyline associated with the Edge.
     
-    # int gem_getDiscrete(gemDRep *drep,          #  (in)  pointer to DRep #
-    #                 gemPair bedge,          #  (in)  BRep/Edge index in DRep #
-    #                 int     *npts,          #  (out) number of vertices #
-    #                 double  *xyzs[])       #  (out) pointer to the coordinates #
+    int gem_getDiscrete(gemDRep *drep,          #  (in)  pointer to DRep #
+                        gemPair bedge,          #  (in)  BRep/Edge index in DRep #
+                        int     *npts,          #  (out) number of vertices #
+                        double  *xyzs[])       #  (out) pointer to the coordinates #
 
 
     #  get Face Tessellation
