@@ -970,6 +970,7 @@ cdef class Model(HasAttrs):
         else:
             iBRep = 0
 
+        sys.stdout.write("tessellating, iBRep=%d" % iBRep)
         drep.tessellate(iBRep, angle, relSide*focus[3], relSag*focus[3])
 
         for i, brep in enumerate(breps):
@@ -978,13 +979,15 @@ cdef class Model(HasAttrs):
             for j in range(1, nface+1):
                 tris, xyzs = drep.getTessel(i+1, j)
                 wv.set_face_data(xyzs.astype(np.float32).flatten(), 
-                                 tris.astype(np.int32).flatten(), bbox=box)
+                                 tris.astype(np.int32).flatten(), bbox=box,
+                                 name="brep%dface%d"%(i,j))
 
             for j in range(1, nedge+1):
                 points = drep.getDiscrete(i+1, j)
                 if len(points) < 2:
                     continue
-                wv.set_edge_data(points.astype(np.float32).flatten())
+                wv.set_edge_data(points.astype(np.float32).flatten(),
+                                 name="brep%dedge%d"%(i,j))
 
     def __dealloc__(self):
         self.release()
