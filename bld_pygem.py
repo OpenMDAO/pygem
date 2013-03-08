@@ -81,7 +81,7 @@ def _get_dlibpath(libs):
     for lib in libs:
         if lib not in parts:
             parts = [lib]+parts
-    return (pname, os.pathsep.join(parts))
+    return (pname, os.pathsep.join([p for p in parts if os.path.isdir(p)]))
 
 def _get_arch():
     """Get the architecture string (DARWIN, DARWIN64, LINUX, LINUX64, WIN32,
@@ -241,6 +241,13 @@ if __name__ == '__main__':
         print "Engineering Sketchpad directory %s doesn't exist\n" % esp_dir
         sys.exit(-1)
             
+    # make a lib dir inside of our package where we can put all of
+    # the libraries that we'll include in the binary distribution
+    pygem_libdir = join(dirname(abspath(__file__)), pkg_name, pkg_name, 'lib')
+
+    if options.develop:
+        libs.append(pygem_libdir)
+
     lib_path_tup = _get_dlibpath(libs)
     arch = _get_arch()
 
@@ -330,10 +337,6 @@ if __name__ == '__main__':
             print 'return from make was %s. aborting...' % ret
             sys.exit(ret)
             
-    
-    # make a lib dir inside of our package where we can put all of
-    # the libraries that we'll include in the binary distribution
-    pygem_libdir = join(dirname(abspath(__file__)), pkg_name, pkg_name, 'lib')
     if isdir(pygem_libdir):
         shutil.rmtree(pygem_libdir)
     os.mkdir(pygem_libdir)
