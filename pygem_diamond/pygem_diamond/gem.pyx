@@ -979,7 +979,7 @@ cdef class Model(HasAttrs):
                 tris, xyzs = drep.getTessel(i+1, j)
                 wv.set_face_data(xyzs.astype(np.float32).flatten(), 
                                  tris.astype(np.int32).flatten(), bbox=box,
-                                 name="Body %d Face %d"%(i+1,j), fp=outfp)
+                                 name="Body %d Face %d"%(i+1,j))
 
             for j in range(1, nedge+1):
                 points = drep.getDiscrete(i+1, j)
@@ -987,7 +987,7 @@ cdef class Model(HasAttrs):
                     continue
                 wv.set_edge_data(points.astype(np.float32).flatten(),
                                 bbox=box,
-                                name="Body %d Edge %d"%(i+1,j), fp=outfp)
+                                name="Body %d Edge %d"%(i+1,j))
 
 
     def __dealloc__(self):
