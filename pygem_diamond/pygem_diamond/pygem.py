@@ -136,7 +136,7 @@ class GEMGeometry(object):
         self._model  = None
         
         
-    def get_visualization_data(self, wv, iBRep=None):
+    def get_visualization_data(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):
         '''Fills the given WV_Wrapper object with data for faces,
         edges, colors, etc.
         
@@ -149,7 +149,7 @@ class GEMGeometry(object):
         if self._model is None:
             return []
 
-        self._model.make_tess(wv, iBRep)
+        self._model.make_tess(wv, iBRep, angle, relSide, relSag)
 
         # server, filename, modeler, uptodate, myBReps, nparam, \
         #     nbranch, nattr = self._model.getInfo() 

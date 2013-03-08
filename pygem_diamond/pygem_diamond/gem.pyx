@@ -944,7 +944,7 @@ cdef class Model(HasAttrs):
 
         return box
 
-    def make_tess(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):    
+    def make_tess(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):
         box = self.get_bounding_box(iBRep)
 
         size = box[3] - box[0]
@@ -970,7 +970,6 @@ cdef class Model(HasAttrs):
         else:
             iBRep = 0
 
-        sys.stdout.write("tessellating, iBRep=%d" % iBRep)
         drep.tessellate(iBRep, angle, relSide*focus[3], relSag*focus[3])
 
         for i, brep in enumerate(breps):
@@ -980,14 +979,16 @@ cdef class Model(HasAttrs):
                 tris, xyzs = drep.getTessel(i+1, j)
                 wv.set_face_data(xyzs.astype(np.float32).flatten(), 
                                  tris.astype(np.int32).flatten(), bbox=box,
-                                 name="brep%dface%d"%(i,j))
+                                 name="Body %d Face %d"%(i+1,j))
 
             for j in range(1, nedge+1):
                 points = drep.getDiscrete(i+1, j)
                 if len(points) < 2:
                     continue
                 wv.set_edge_data(points.astype(np.float32).flatten(),
-                                 name="brep%dedge%d"%(i,j))
+                                bbox=box,
+                                name="Body %d Edge %d"%(i+1,j))
+
 
     def __dealloc__(self):
         self.release()
