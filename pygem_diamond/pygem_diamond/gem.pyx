@@ -945,6 +945,8 @@ cdef class Model(HasAttrs):
         return box
 
     def make_tess(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):
+        """Fill up the WV_Wrapper object with data for our faces and edges."""
+        
         box = self.get_bounding_box(iBRep)
 
         size = box[3] - box[0]
