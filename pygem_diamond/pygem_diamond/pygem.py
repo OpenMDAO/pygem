@@ -1,6 +1,7 @@
 
 import os
 
+from numpy import array, float32, float64, int32, uint8
 import numpy as np
 
 from openmdao.main.api import implements
@@ -150,3 +151,35 @@ class GEMGeometry(object):
             return []
 
         self._model.make_tess(wv, iBRep, angle, relSide, relSag)
+
+
+try:
+    from pyV3D.handlers import WV_ViewHandler
+except ImportError:
+    pass
+else:
+    class GEMViewHandler(WV_ViewHandler):
+
+        @staticmethod
+        def get_file_extensions():
+            """Returns a list of file extensions that this handler knows how to view."""
+            return ['csm']
+
+        def create_geom(self):
+            eye    = array([0.0, 0.0, 7.0], dtype=float32)
+            center = array([0.0, 0.0, 0.0], dtype=float32)
+            up     = array([0.0, 1.0, 0.0], dtype=float32)
+            fov   = 30.0
+            zNear = 1.0
+            zFar  = 10.0
+
+            bias  = 1
+            self.wv.createContext(bias, fov, zNear, zFar, eye, center, up)
+
+            self.my_param_geom = GEMParametricGeometry()
+            self.my_param_geom.model_file = os.path.expanduser(os.path.abspath(self.geometry_file))
+            geom = self.my_param_geom.get_geometry()
+            if geom is None:
+                raise RuntimeError("can't get Geometry object")
+            geom.get_visualization_data(self.wv, angle=15., relSide=.02, relSag=.001)
+

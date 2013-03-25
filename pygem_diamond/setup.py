@@ -77,6 +77,8 @@ setup(
     entry_points = """
     [openmdao.parametric_geometry]
     pygem_diamond.pygem.GEMParametricGeometry = pygem_diamond.pygem:GEMParametricGeometry
+    [pyv3d.view_handlers]
+    pygem_diamond.pygem.GEMViewHandler = pygem_diamond.pygem:GEMViewHandler
     """
 )
 
