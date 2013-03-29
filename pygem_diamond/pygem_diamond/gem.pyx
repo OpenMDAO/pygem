@@ -671,8 +671,8 @@ cdef class Model(HasAttrs):
         if iotype not in [None, 'in', 'out']:
             raise_exception('list_params: iotype must be one of [None, "in", "out"]')
         for name, ident in self._param_map.items():
-            meta = self.getParam(ident)
-            if meta['iotype'] == iotype or iotype is None:
+            meta = self.getParam(ident, get_meta=True)
+            if iotype is None or meta['iotype'] == iotype:
                 params.append((name, meta))
         return params
         
@@ -809,7 +809,7 @@ cdef class Model(HasAttrs):
             raise_exception('failed to set branch %s suppression state to %s' % (ibranch, istate), 
                             status, 'gem_setSuppress')
 
-    def getParam(self, param_id):
+    def getParam(self, param_id, get_meta=False):
         cdef int status, bflag, order, ptype, plen, *integers, nattr
         cdef double *reals
         cdef char *pname, *string
@@ -848,6 +848,9 @@ cdef class Model(HasAttrs):
             value = string
         else:
             raise_exception('type of value returned from gem_getParam (%s) is invalid' % ptype)
+
+        if not get_meta:
+            return value
 
         meta = {}
         if bflag & 8:  # check if param has limits

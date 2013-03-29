@@ -6,21 +6,19 @@ import numpy as np
 
 from openmdao.main.api import implements
 from openmdao.main.interfaces import IParametricGeometry
+from openmdao.main.geom import ParametricGeometry
 
 from pygem_diamond import gem
 
 
-class GEMParametricGeometry(object):
+class GEMParametricGeometry(ParametricGeometry):
     """A wrapper for a GEM object with modifiable parameters.  This object
     implements the IParametricGeometry interface.
     """
 
-    implements(IParametricGeometry)
-
     def __init__(self):
         super(GEMParametricGeometry, self).__init__()
         self._model = None
-        self._callbacks = []
         self._context = gem.Context()
         self._model_file = None
 
@@ -48,19 +46,18 @@ class GEMParametricGeometry(object):
                     raise IOError("file '%s' not found." % filename)
         finally:
             self._model_file = filename
-            for cb in self._callbacks:
-                cb()
+            self.invoke_callbacks()
 
         return self._model
 
-    def regenModel(self):
+    def regen_model(self):
         if self._model is not None:
             try:
                 return self._model.regenerate()
             except Exception as err:
                 raise RuntimeError("Error regenerating model: %s" % str(err))
 
-    def listParameters(self):
+    def list_parameters(self):
         """Return a list of parameters (inputs and outputs) for this model.
         """
         if self._model is not None:
@@ -68,7 +65,7 @@ class GEMParametricGeometry(object):
         else:
             return []
 
-    def setParameter(self, name, val):
+    def set_parameter(self, name, val):
         """Set new value for a driving parameter.
 
         """
@@ -80,16 +77,12 @@ class GEMParametricGeometry(object):
         else:
             raise RuntimeError("Error setting parameter: no model")
 
-    def getParameter(self, name):
-        """Get info about a Parameter in a Model"""
+    def get_parameters(self, names):
+        """Get parameter values"""
         if self._model is not None:
-            return self._model.getParam(name)
+            return [self._model.getParam(n) for n in names]
         else:
-            raise RuntimeError("Error getting parameter: no model")
-
-    def register_param_list_changedCB(self, callback):
-        if callback not in self._callbacks:
-            self._callbacks.append(callback)
+            raise RuntimeError("Error getting parameters: no model")
 
     def terminate(self):
         """Terminate GEM context."""
@@ -112,7 +105,7 @@ class GEMParametricGeometry(object):
             ]
         }
 
-    def get_geometry(self):
+    def get_static_geometry(self):
         if self._model is not None:
             geom = GEMGeometry()
             geom._model = self._model
@@ -182,7 +175,7 @@ else:
 
             self.my_param_geom = GEMParametricGeometry()
             self.my_param_geom.model_file = os.path.expanduser(os.path.abspath(self.geometry_file))
-            geom = self.my_param_geom.get_geometry()
+            geom = self.my_param_geom.get_static_geometry()
             if geom is None:
                 raise RuntimeError("can't get Geometry object")
             geom.get_visualization_data(self.wv, angle=15., relSide=.02, relSag=.001)
