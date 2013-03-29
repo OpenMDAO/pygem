@@ -774,10 +774,14 @@ cdef class Model(HasAttrs):
 
     def regenerate(self):
         """Rebuilds the model"""
+        cdef int status
+
         _check_gemobj(self)
         _remove_breps(self.model)
+
         status = gem_regenModel(self.model)
-        if status != GEM_SUCCESS:
+
+        if status != GEM_SUCCESS and status != GEM_NOTCHANGED:
             raise_exception('failed to regenerate model', status, 'gem_regenModel')
 
     def getBranch(self, int ibranch):

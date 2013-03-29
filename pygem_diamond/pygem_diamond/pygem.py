@@ -136,7 +136,6 @@ class GEMGeometry(object):
         # GEMParametricGeometry object.
         self._model  = None
         
-        
     def get_visualization_data(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):
         '''Fills the given WV_Wrapper object with data for faces,
         edges, colors, etc.
@@ -164,6 +163,11 @@ else:
         def get_file_extensions():
             """Returns a list of file extensions that this handler knows how to view."""
             return ['csm']
+
+        @staticmethod
+        def can_view(obj):
+            """Returns True if the given object type is viewable using this handler."""
+            return isinstance(GEMParametricGeometry) or isinstance(GEMGeometry)
 
         def create_geom(self):
             eye    = array([0.0, 0.0, 7.0], dtype=float32)
