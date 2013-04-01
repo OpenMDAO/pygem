@@ -152,15 +152,20 @@ except ImportError:
 else:
     class GEMViewHandler(WV_ViewHandler):
 
-        @staticmethod
-        def get_file_extensions():
-            """Returns a list of file extensions that this handler knows how to view."""
-            return ['csm']
+        def __init__(self, handler, *args, **kwargs):
+            super(GEMViewHandler, self).__init__()
 
-        @staticmethod
-        def can_view(obj):
-            """Returns True if the given object type is viewable using this handler."""
-            return isinstance(GEMParametricGeometry) or isinstance(GEMGeometry)
+            if len(args) > 0 and args[0]:
+                fname = handler.find_file(args[0])
+                if fname:
+                    if fname.endswith('.csm'):
+                        self.geometry_file = fname
+                        return
+                    else:
+                        raise RuntimeError("file %s is not an OpenCSM file." % fname)
+                else: # not a file, try to locate named object
+                    pass
+            raise RuntimeError("bad __init__ args")
 
         def create_geom(self):
             eye    = array([0.0, 0.0, 7.0], dtype=float32)
@@ -174,7 +179,7 @@ else:
             self.wv.createContext(bias, fov, zNear, zFar, eye, center, up)
 
             self.my_param_geom = GEMParametricGeometry()
-            self.my_param_geom.model_file = os.path.expanduser(os.path.abspath(self.geometry_file))
+            self.my_param_geom.model_file = self.geometry_file
             geom = self.my_param_geom.get_static_geometry()
             if geom is None:
                 raise RuntimeError("can't get Geometry object")
