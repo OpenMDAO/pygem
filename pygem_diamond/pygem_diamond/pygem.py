@@ -128,7 +128,7 @@ class GEMGeometry(object):
         # GEM stores the geometry model in a context which originates in the
         # GEMParametricGeometry object.
         self._model  = None
-        
+
     def get_visualization_data(self, wv, iBRep=None, angle=0., relSide=0., relSag=0.):
         '''Fills the given WV_Wrapper object with data for faces,
         edges, colors, etc.
@@ -140,34 +140,31 @@ class GEMGeometry(object):
             will be visualized.  
         '''
         if self._model is None:
-            return []
+            return
 
         self._model.make_tess(wv, iBRep, angle, relSide, relSag)
 
 
 try:
-    from pyV3D.handlers import WV_ViewHandler
+    from pyV3D.handlers import WV_Sender
 except ImportError:
     pass
 else:
-    class GEMViewHandler(WV_ViewHandler):
+    class GEM_Sender(WV_Sender):
 
-        def __init__(self, handler, *args, **kwargs):
-            super(GEMViewHandler, self).__init__()
+        @staticmethod
+        def supports(obj):
+            return isinstance(obj, (GEMParametricGeometry, GEMGeometry))
 
-            if len(args) > 0 and args[0]:
-                fname = handler.find_file(args[0])
-                if fname:
-                    if fname.endswith('.csm'):
-                        self.geometry_file = fname
-                        return
-                    else:
-                        raise RuntimeError("file %s is not an OpenCSM file." % fname)
-                else: # not a file, try to locate named object
-                    pass
-            raise RuntimeError("bad __init__ args")
+        def geom_from_file(self, fname):
+            pgeom = GEMParametricGeometry()
+            peom.model_file = fname
+            geom = pgeom.get_static_geometry()
+            if geom is None:
+                raise RuntimeError("can't get Geometry object")
+            self.geom_from_obj(geom)
 
-        def create_geom(self):
+        def geom_from_obj(self, obj):
             eye    = array([0.0, 0.0, 7.0], dtype=float32)
             center = array([0.0, 0.0, 0.0], dtype=float32)
             up     = array([0.0, 1.0, 0.0], dtype=float32)
@@ -177,11 +174,11 @@ else:
 
             bias  = 1
             self.wv.createContext(bias, fov, zNear, zFar, eye, center, up)
+            if isinstance(obj, GEMParametricGeometry):
+                obj = obj.get_static_geometry()
+            elif not isinstance(obj, GEMGeometry):
+                raise TypeError("object must be a GEMParametricGeometry or GEMGeometry but is a '%s' instead" % 
+                    str(type(obj)))
+            obj.get_visualization_data(self.wv, angle=15., relSide=.02, relSag=.001)
 
-            self.my_param_geom = GEMParametricGeometry()
-            self.my_param_geom.model_file = self.geometry_file
-            geom = self.my_param_geom.get_static_geometry()
-            if geom is None:
-                raise RuntimeError("can't get Geometry object")
-            geom.get_visualization_data(self.wv, angle=15., relSide=.02, relSag=.001)
 
