@@ -62,7 +62,7 @@ module1 = Extension(pkg_name + '.gem',
 
 setup(
     name=pkg_name,
-    version='0.9.6',
+    version='0.9.7',
     description='Python interface to GEM using OpenCSM and EGADS',
     zip_safe=False,
     cmdclass = {'build_ext': build_ext},
@@ -77,8 +77,8 @@ setup(
     entry_points = """
     [openmdao.parametric_geometry]
     pygem_diamond.pygem.GEMParametricGeometry = pygem_diamond.pygem:GEMParametricGeometry
-    [pyv3d.subhandlers]
-    pygem_diamond.pygem.GEMViewHandler = pygem_diamond.pygem:GEMViewHandler
+    [openmdao.binpub]
+    pygem_diamond.pygem.GEM_Sender = pygem_diamond.pygem:GEM_Sender
     """
 )
 

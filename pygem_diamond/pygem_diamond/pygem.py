@@ -151,10 +151,23 @@ except ImportError:
     pass
 else:
     class GEM_Sender(WV_Sender):
+        def initialize(self, **kwargs):
+            eye    = array([0.0, 0.0, 7.0], dtype=float32)
+            center = array([0.0, 0.0, 0.0], dtype=float32)
+            up     = array([0.0, 1.0, 0.0], dtype=float32)
+            fov   = 30.0
+            zNear = 1.0
+            zFar  = 10.0
+
+            bias  = 1
+            self.wv.createContext(bias, fov, zNear, zFar, eye, center, up)            
 
         @staticmethod
         def supports(obj):
-            return isinstance(obj, (GEMParametricGeometry, GEMGeometry))
+            if isinstance(obj, basestring):
+                return obj.endswith('.csm')
+            else:
+                return isinstance(obj, (GEMParametricGeometry, GEMGeometry))
 
         def geom_from_file(self, fname):
             pgeom = GEMParametricGeometry()
@@ -165,15 +178,6 @@ else:
             self.geom_from_obj(geom)
 
         def geom_from_obj(self, obj):
-            eye    = array([0.0, 0.0, 7.0], dtype=float32)
-            center = array([0.0, 0.0, 0.0], dtype=float32)
-            up     = array([0.0, 1.0, 0.0], dtype=float32)
-            fov   = 30.0
-            zNear = 1.0
-            zFar  = 10.0
-
-            bias  = 1
-            self.wv.createContext(bias, fov, zNear, zFar, eye, center, up)
             if isinstance(obj, GEMParametricGeometry):
                 obj = obj.get_static_geometry()
             elif not isinstance(obj, GEMGeometry):
