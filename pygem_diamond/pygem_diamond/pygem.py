@@ -1,11 +1,8 @@
 
 import os
 
-from numpy import array, float32, float64, int32, uint8
-import numpy as np
+from numpy import array, float32
 
-from openmdao.main.api import implements
-from openmdao.main.interfaces import IParametricGeometry
 from openmdao.main.geom import ParametricGeometry
 
 from pygem_diamond import gem
@@ -171,17 +168,14 @@ else:
                 return isinstance(obj, (GEMParametricGeometry, GEMGeometry))
 
         def geom_from_file(self, fname):
-            pgeom = GEMParametricGeometry()
-            peom.model_file = fname
-            geom = pgeom.get_static_geometry()
-            if geom is None:
-                raise RuntimeError("can't get Geometry object")
+            geom = GEMParametricGeometry()
+            geom.model_file = fname
             self.geom_from_obj(geom)
 
         def geom_from_obj(self, obj):
             if isinstance(obj, GEMParametricGeometry):
                 obj = obj.get_static_geometry()
-            elif not isinstance(obj, GEMGeometry):
+            if not isinstance(obj, GEMGeometry):
                 raise TypeError("object must be a GEMParametricGeometry or GEMGeometry but is a '%s' instead" % 
                     str(type(obj)))
             obj.get_visualization_data(self.wv, angle=15., relSide=.02, relSag=.001)
