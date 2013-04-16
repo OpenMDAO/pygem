@@ -776,11 +776,15 @@ cdef class Model(HasAttrs):
         """Rebuilds the model"""
         cdef int status
 
+        print "checking self"
         _check_gemobj(self)
+        print "removing breps"
         _remove_breps(self.model)
 
+        print "gem_regenModel"
         status = gem_regenModel(self.model)
 
+        print "status = %s" % status
         if status != GEM_SUCCESS and status != GEM_NOTCHANGED:
             raise_exception('failed to regenerate model', status, 'gem_regenModel')
 

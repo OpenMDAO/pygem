@@ -51,6 +51,7 @@ class GEMParametricGeometry(ParametricGeometry):
         return self._model
 
     def regen_model(self):
+        print "calling model.regenerate, model=%s" % self._model
         if self._model is not None:
             try:
                 return self._model.regenerate()
