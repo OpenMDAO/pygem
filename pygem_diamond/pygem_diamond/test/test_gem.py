@@ -170,7 +170,7 @@ class PygemTestCase(unittest.TestCase):
             myModel.setAttribute("PARAM", iparam, "r_attr", (10.0*iparam,)   )
 
         iparam = 4
-        meta = myModel.getParam(iparam)
+        meta = myModel.getParam(iparam, get_meta=True)
         self.assertEqual(meta['name'], "ymax")
         self.assertEqual(meta['iotype'], 'in' )
         self.assertEqual(meta['order'], 0 )
@@ -181,7 +181,7 @@ class PygemTestCase(unittest.TestCase):
 
         myModel.regenerate()
 
-        meta = myModel.getParam(iparam)
+        meta = myModel.getParam(iparam, get_meta=True)
         self.assertEqual(meta['name'], "ymax")
         self.assertEqual(meta['iotype'], 'in' )
         self.assertEqual(meta['order'], 0 )
@@ -189,7 +189,7 @@ class PygemTestCase(unittest.TestCase):
         self.assertEqual(meta['nattr'], 3 )
 
         for iparam in range(1, nparam+1):
-            meta = myModel.getParam(iparam)
+            meta = myModel.getParam(iparam, get_meta=True)
             self.assertEqual(meta['nattr'], 3, "iparam=%d" % iparam)
 
             aindex, values = myModel.getAttribute("PARAM", iparam, "s_attr")
@@ -341,7 +341,7 @@ end
     def test_GEMParametricGeometry(self):
         geom = GEMParametricGeometry()
         geom.model_file = self.model_file
-        params = geom.listParameters()
+        params = geom.list_parameters()
         expected_inputs = set(['width', 'depth', 'height', 
             'neckDiam', 'neckHeight', 'wall',
             'filRad1', 'filRad2'])
@@ -352,13 +352,13 @@ end
                 'volume', 'Iyy', 'Iyx', 'Iyz', 'area', 'nedge', 'xmax'])
         self.assertEqual(expected_outs, set([k for k,v in params if v['iotype']=='out']))
 
-        meta = geom.getParameter('baseHt')
-        baseHt = meta['value']
+        vals = geom.get_parameters(['baseHt'])
+        baseHt = vals[0]
         self.assertEqual(baseHt, 12.0)
-        geom.setParameter('height', 20.0)
-        geom.regenModel()
-        meta = geom.getParameter('baseHt')
-        baseHt = meta['value']
+        geom.set_parameter('height', 20.0)
+        geom.regen_model()
+        vals = geom.get_parameters(['baseHt'])
+        baseHt = vals[0]
         self.assertEqual(baseHt, 17.0)
         geom.terminate()
 
