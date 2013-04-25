@@ -120,7 +120,7 @@ cdef int _remove_breps(gemModel *model) except -1:
         # remove any BReps from _gemObjects for this model
         status = gem_getModel(model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise RuntimeError('failed to get info from model (code=%s)' % _err_codes.get(status, status))
 
@@ -436,16 +436,16 @@ cdef class DRep(HasAttrs):
         if status != GEM_SUCCESS:
             raise_exception('gem_getTessel failed', status)
 
-        ndims = 2;
-        dims[0] = npts;
-        dims[1] = 3;
+        ndims = 2
+        dims[0] = npts
+        dims[1] = 3
         xyz_copy = <double*>malloc(3*npts*sizeof(double))
         memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
         xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
         np.PyArray_UpdateFlags(xyz_nd, np.NPY_OWNDATA)   
 
-        dims[0] = ntris;
-        dims[1] = 3;
+        dims[0] = ntris
+        dims[1] = 3
         tris_copy = <int*>malloc(3*ntris*sizeof(int))
         memcpy(tris_copy, <void*>tris, 3*ntris*sizeof(int))
         tri_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_INT, tris_copy)
@@ -467,9 +467,9 @@ cdef class DRep(HasAttrs):
         if status != GEM_SUCCESS:
             raise_exception('gem_getDiscrete failed', status)
 
-        ndims = 2;
-        dims[0] = npts;
-        dims[1] = 3;
+        ndims = 2
+        dims[0] = npts
+        dims[1] = 3
         xyz_copy = <double*>malloc(3*npts*sizeof(double))
         memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
         xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
@@ -496,7 +496,7 @@ cdef class BRep(HasAttrs):
         cdef int instance, branch, status
 
         _check_gemobj(self)
-        status = gem_getBRepOwner(self.brep, &model, &instance, &branch);
+        status = gem_getBRepOwner(self.brep, &model, &instance, &branch)
         if (status != GEM_SUCCESS):
             raise_exception(status=status, fname='BRep.getOwner')
 
@@ -642,7 +642,7 @@ cdef class Model(HasAttrs):
         _check_gemobj(self)
         status = gem_getModel(self.model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise_exception('failed to get info from model', status, 'gem_getModel')
 
@@ -716,7 +716,7 @@ cdef class Model(HasAttrs):
 
         _cvtXform(xform, transform)
         status = gem_add2Model(<gemModel*>model.get_entity(), 
-                               <gemBRep*>brep.get_entity(), transform);
+                               <gemBRep*>brep.get_entity(), transform)
         if (status != GEM_SUCCESS):
             raise_exception('failed to add BRep to model', status, 'gem.add2Model')
 
@@ -740,7 +740,7 @@ cdef class Model(HasAttrs):
         _check_gemobj(self)
         status = gem_getModel(self.model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise_exception('failed to get info from model', status, 'Model.getInfo')
 
