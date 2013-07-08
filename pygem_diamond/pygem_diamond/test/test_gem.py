@@ -61,7 +61,7 @@ class PygemTestCase(unittest.TestCase):
         self.assertEqual(filename, sample_file)
         self.assertEqual(modeler,  "OpenCSM")
         self.assertEqual(uptodate,  1)
-        self.assertEqual(nparam,   33)
+        self.assertEqual(nparam,   39)
         self.assertEqual(nbranch,  22)
         self.assertEqual(nattr,     3)
 
