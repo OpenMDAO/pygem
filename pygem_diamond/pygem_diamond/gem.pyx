@@ -354,9 +354,9 @@ cdef class DRep(HasAttrs):
         cdef:
             int status
             int typ, nnode, nedge, nloop, nface, nshell, nattr
-            int uptodate, nbrep, nparam, nbranch, nbound, i
+            int uptodate, nbrep, nparam, nbranch, nbound, i, nids
             double box[6], bbox[6], size
-            char *filename, *server, *modeler
+            char *filename, *server, *modeler, **IDs
             gemModel *model
             gemBRep **breps, *brep
             gemDRep *drep
@@ -365,7 +365,7 @@ cdef class DRep(HasAttrs):
         _check_gemobj(self)
 
         if maxang <=0. or maxlen <=0. or maxsag <= 0.:
-            status = gem_getDRepInfo(self.drep, &model, &nbound, &nattr)
+            status = gem_getDRepInfo(self.drep, &model, &nids, &IDs, &nbound, &nattr)
             if status != GEM_SUCCESS:
                 raise_exception('failed to get DRep info', status, 'GemDRep.tessellate')
 
@@ -776,15 +776,10 @@ cdef class Model(HasAttrs):
         """Rebuilds the model"""
         cdef int status
 
-        print "checking self"
         _check_gemobj(self)
-        print "removing breps"
         _remove_breps(self.model)
-
-        print "gem_regenModel"
         status = gem_regenModel(self.model)
 
-        print "status = %s" % status
         if status != GEM_SUCCESS and status != GEM_NOTCHANGED:
             raise_exception('failed to regenerate model', status, 'gem_regenModel')
 
