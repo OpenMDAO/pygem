@@ -120,7 +120,7 @@ cdef int _remove_breps(gemModel *model) except -1:
         # remove any BReps from _gemObjects for this model
         status = gem_getModel(model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise RuntimeError('failed to get info from model (code=%s)' % _err_codes.get(status, status))
 
@@ -354,9 +354,9 @@ cdef class DRep(HasAttrs):
         cdef:
             int status
             int typ, nnode, nedge, nloop, nface, nshell, nattr
-            int uptodate, nbrep, nparam, nbranch, nbound, i
+            int uptodate, nbrep, nparam, nbranch, nbound, i, nids
             double box[6], bbox[6], size
-            char *filename, *server, *modeler
+            char *filename, *server, *modeler, **IDs
             gemModel *model
             gemBRep **breps, *brep
             gemDRep *drep
@@ -365,7 +365,7 @@ cdef class DRep(HasAttrs):
         _check_gemobj(self)
 
         if maxang <=0. or maxlen <=0. or maxsag <= 0.:
-            status = gem_getDRepInfo(self.drep, &model, &nbound, &nattr)
+            status = gem_getDRepInfo(self.drep, &model, &nids, &IDs, &nbound, &nattr)
             if status != GEM_SUCCESS:
                 raise_exception('failed to get DRep info', status, 'GemDRep.tessellate')
 
@@ -436,16 +436,16 @@ cdef class DRep(HasAttrs):
         if status != GEM_SUCCESS:
             raise_exception('gem_getTessel failed', status)
 
-        ndims = 2;
-        dims[0] = npts;
-        dims[1] = 3;
+        ndims = 2
+        dims[0] = npts
+        dims[1] = 3
         xyz_copy = <double*>malloc(3*npts*sizeof(double))
         memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
         xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
         np.PyArray_UpdateFlags(xyz_nd, np.NPY_OWNDATA)   
 
-        dims[0] = ntris;
-        dims[1] = 3;
+        dims[0] = ntris
+        dims[1] = 3
         tris_copy = <int*>malloc(3*ntris*sizeof(int))
         memcpy(tris_copy, <void*>tris, 3*ntris*sizeof(int))
         tri_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_INT, tris_copy)
@@ -467,9 +467,9 @@ cdef class DRep(HasAttrs):
         if status != GEM_SUCCESS:
             raise_exception('gem_getDiscrete failed', status)
 
-        ndims = 2;
-        dims[0] = npts;
-        dims[1] = 3;
+        ndims = 2
+        dims[0] = npts
+        dims[1] = 3
         xyz_copy = <double*>malloc(3*npts*sizeof(double))
         memcpy(xyz_copy, <void*>xyz, 3*npts*sizeof(double))
         xyz_nd = np.PyArray_SimpleNewFromData(ndims, dims, np.NPY_DOUBLE, xyz_copy)
@@ -496,7 +496,7 @@ cdef class BRep(HasAttrs):
         cdef int instance, branch, status
 
         _check_gemobj(self)
-        status = gem_getBRepOwner(self.brep, &model, &instance, &branch);
+        status = gem_getBRepOwner(self.brep, &model, &instance, &branch)
         if (status != GEM_SUCCESS):
             raise_exception(status=status, fname='BRep.getOwner')
 
@@ -642,7 +642,7 @@ cdef class Model(HasAttrs):
         _check_gemobj(self)
         status = gem_getModel(self.model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise_exception('failed to get info from model', status, 'gem_getModel')
 
@@ -671,8 +671,8 @@ cdef class Model(HasAttrs):
         if iotype not in [None, 'in', 'out']:
             raise_exception('list_params: iotype must be one of [None, "in", "out"]')
         for name, ident in self._param_map.items():
-            meta = self.getParam(ident)
-            if meta['iotype'] == iotype or iotype is None:
+            meta = self.getParam(ident, get_meta=True)
+            if iotype is None or meta['iotype'] == iotype:
                 params.append((name, meta))
         return params
         
@@ -716,7 +716,7 @@ cdef class Model(HasAttrs):
 
         _cvtXform(xform, transform)
         status = gem_add2Model(<gemModel*>model.get_entity(), 
-                               <gemBRep*>brep.get_entity(), transform);
+                               <gemBRep*>brep.get_entity(), transform)
         if (status != GEM_SUCCESS):
             raise_exception('failed to add BRep to model', status, 'gem.add2Model')
 
@@ -740,7 +740,7 @@ cdef class Model(HasAttrs):
         _check_gemobj(self)
         status = gem_getModel(self.model, &server, &filename, &modeler,
                               &uptodate, &nbrep, &breps,
-                              &nparam, &nbranch, &nattr);
+                              &nparam, &nbranch, &nattr)
         if status != GEM_SUCCESS:
             raise_exception('failed to get info from model', status, 'Model.getInfo')
 
@@ -774,10 +774,13 @@ cdef class Model(HasAttrs):
 
     def regenerate(self):
         """Rebuilds the model"""
+        cdef int status
+
         _check_gemobj(self)
         _remove_breps(self.model)
         status = gem_regenModel(self.model)
-        if status != GEM_SUCCESS:
+
+        if status != GEM_SUCCESS and status != GEM_NOTCHANGED:
             raise_exception('failed to regenerate model', status, 'gem_regenModel')
 
     def getBranch(self, int ibranch):
@@ -805,7 +808,7 @@ cdef class Model(HasAttrs):
             raise_exception('failed to set branch %s suppression state to %s' % (ibranch, istate), 
                             status, 'gem_setSuppress')
 
-    def getParam(self, param_id):
+    def getParam(self, param_id, get_meta=False):
         cdef int status, bflag, order, ptype, plen, *integers, nattr
         cdef double *reals
         cdef char *pname, *string
@@ -844,6 +847,9 @@ cdef class Model(HasAttrs):
             value = string
         else:
             raise_exception('type of value returned from gem_getParam (%s) is invalid' % ptype)
+
+        if not get_meta:
+            return value
 
         meta = {}
         if bflag & 8:  # check if param has limits
