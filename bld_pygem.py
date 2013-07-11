@@ -112,7 +112,7 @@ def _get_cas_rev(cas_root):
                         if len(parts)>1 and parts[0] == '#define' and parts[1] == 'OCC_VERSION':
                             return parts[2]
 
-def _get_occ_libs(rootpath, libpath):
+def _get_occ_libs(rootpath, libpath, version_tup):
     extras = []
     if sys.platform.startswith('linux'):
         libs = fnmatch.filter(os.listdir(libpath), "*.so")
@@ -122,8 +122,12 @@ def _get_occ_libs(rootpath, libpath):
     elif sys.platform.startswith("win"):
         libpath = join(dirname(libpath), 'bin')
         libs = fnmatch.filter(os.listdir(libpath), "*.dll")
-        extras = [join(dirname(rootpath), '3rdparty', 'win32', 
-                                 'tbb', 'bin', 'tbbmalloc.dll')]
+        if version_tup < (6,6):
+            extras = [join(dirname(rootpath), '3rdparty', 'win32', 
+                                    'tbb', 'bin', 'tbbmalloc.dll')]
+        else:
+            extras = [join(dirname(rootpath), '3rdparty', 'tbb30_018oss',
+                               'bin', 'ia32', 'vc9', 'tbbmalloc.dll')]
     return [join(libpath, lib) for lib in libs]+extras
 
 def _get_capri_libs(libpath):
@@ -210,18 +214,25 @@ if __name__ == '__main__':
             print "OpenCASCADE directory %s doesn't exist\n" % cas_root
             sys.exit(-1)
               
-        if sys.platform.startswith('win'):
-            # TODO: make the determination of cas_lib on windows more robust
-            cas_lib = join(cas_root, 'win32', 'vc8', 'lib')
-        else:
-            cas_lib = join(cas_root, 'lib')
-
         if cas_rev is None:
             cas_rev = _get_cas_rev(cas_root)
-            
+
         if cas_rev is None:
             print "Can't determine OpenCASCADE revision\n"
             sys.exit(-1)
+
+        tup = tuple(cas_rev.split('.'))
+
+        if tup < (6,6):
+            vc_rev = 'vc8'
+        else:
+            vc_rev = 'vc9'
+
+        if sys.platform.startswith('win'):
+            # TODO: make the determination of cas_lib on windows more robust
+            cas_lib = join(cas_root, 'win32', vc_rev, 'lib')
+        else:
+            cas_lib = join(cas_root, 'lib')
 
     if options.gem_type == 'diamond':
         if options.casroot is None:
@@ -278,7 +289,7 @@ if __name__ == '__main__':
             'LIBPATH': os.pathsep.join(libs),
         })
         if sys.platform.startswith('win'):
-            env['CASARCH'] = env['CASARCH']+'/vc8'
+            env['CASARCH'] = env['CASARCH']+'\\'+vc_rev
     elif options.gem_type == 'quartz':
         env['CAPRILIB'] = expand_path(options.caprilib)
         env['CAPRIINC'] = expand_path(options.capriinc)
@@ -352,7 +363,7 @@ if __name__ == '__main__':
     # collect opencascade libs
     if options.casroot:
         print 'Copying OpenCASCADE libs'
-        for libpath in _get_occ_libs(cas_root, cas_lib):
+        for libpath in _get_occ_libs(cas_root, cas_lib, tup):
             print libpath
             copy(libpath, join(pygem_libdir, basename(libpath)))
 
