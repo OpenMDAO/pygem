@@ -284,4 +284,10 @@ class PygemTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    import sys
+    if len(sys.argv) == 1:
+        unittest.main()
+    else:
+        myContext = gem.Context()
+        myModel = myContext.loadModel(sys.argv[1])
+
