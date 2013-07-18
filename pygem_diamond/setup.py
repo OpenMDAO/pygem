@@ -36,7 +36,7 @@ gem_libraries = ['gem', 'diamond', 'egads']
 gem_library_dirs = [gemlib, egadslib, caslib]
 
 if gem_arch.startswith('DARWIN'):
-    lib_stuff = ["lib/*.dylib"]
+    lib_stuff = ["lib/*.dylib", "lib/*.so"]
     if gem_arch == "DARWIN64":
         os.environ['ARCHFLAGS'] = '-arch x86_64'
     else:
