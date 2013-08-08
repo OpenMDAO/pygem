@@ -53,7 +53,8 @@ def osx_hack(options, env, arch, srcdir, gv=None):
             cmd = "gcc -Wl,-F. -bundle -undefined dynamic_lookup %(PYARCH)s %(OBJFNAME)s -L%(GEM_BLOC)s/lib -L%(EGADSLIB)s -L/usr/X11/lib -lgem -ldiamond -legads -lgv -lGLU -lGL -lX11 -lXext -lpthread -o %(LIBFNAME)s -framework IOKit -framework CoreFoundation -dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib" % dct
 
     if cmd:
-        return subprocess.call(cmd, shell=True, env=os.environ,  cwd=srcdir)
+        return subprocess.call(cmd, shell=True, env=os.environ,  
+                               cwd=srcdir)
 
 
 def copy(src, dst):
@@ -112,7 +113,7 @@ def _get_cas_rev(cas_root):
                         if len(parts)>1 and parts[0] == '#define' and parts[1] == 'OCC_VERSION':
                             return parts[2]
 
-def _get_occ_libs(rootpath, libpath):
+def _get_occ_libs(rootpath, libpath, version_tup):
     extras = []
     if sys.platform.startswith('linux'):
         libs = fnmatch.filter(os.listdir(libpath), "*.so")
@@ -122,8 +123,12 @@ def _get_occ_libs(rootpath, libpath):
     elif sys.platform.startswith("win"):
         libpath = join(dirname(libpath), 'bin')
         libs = fnmatch.filter(os.listdir(libpath), "*.dll")
-        extras = [join(dirname(rootpath), '3rdparty', 'win32', 
-                                 'tbb', 'bin', 'tbbmalloc.dll')]
+        if version_tup < ('6','6'):
+            extras = [join(dirname(rootpath), '3rdparty', 'win32', 
+                                    'tbb', 'bin', 'tbbmalloc.dll')]
+        else:
+            extras = [join(dirname(rootpath), '3rdparty', 'tbb30_018oss',
+                               'bin', 'ia32', 'vc9', 'tbbmalloc.dll')]
     return [join(libpath, lib) for lib in libs]+extras
 
 def _get_capri_libs(libpath):
@@ -210,18 +215,25 @@ if __name__ == '__main__':
             print "OpenCASCADE directory %s doesn't exist\n" % cas_root
             sys.exit(-1)
               
-        if sys.platform.startswith('win'):
-            # TODO: make the determination of cas_lib on windows more robust
-            cas_lib = join(cas_root, 'win32', 'vc8', 'lib')
-        else:
-            cas_lib = join(cas_root, 'lib')
-
         if cas_rev is None:
             cas_rev = _get_cas_rev(cas_root)
-            
+
         if cas_rev is None:
             print "Can't determine OpenCASCADE revision\n"
             sys.exit(-1)
+
+        tup = tuple(cas_rev.split('.'))
+
+        if tup < ('6','6'):
+            vc_rev = 'vc8'
+        else:
+            vc_rev = 'vc9'
+
+        if sys.platform.startswith('win'):
+            # TODO: make the determination of cas_lib on windows more robust
+            cas_lib = join(cas_root, 'win32', vc_rev, 'lib')
+        else:
+            cas_lib = join(cas_root, 'lib')
 
     if options.gem_type == 'diamond':
         if options.casroot is None:
@@ -278,7 +290,7 @@ if __name__ == '__main__':
             'LIBPATH': os.pathsep.join(libs),
         })
         if sys.platform.startswith('win'):
-            env['CASARCH'] = env['CASARCH']+'/vc8'
+            env['CASARCH'] = env['CASARCH']+'\\'+vc_rev
     elif options.gem_type == 'quartz':
         env['CAPRILIB'] = expand_path(options.caprilib)
         env['CAPRIINC'] = expand_path(options.capriinc)
@@ -352,7 +364,7 @@ if __name__ == '__main__':
     # collect opencascade libs
     if options.casroot:
         print 'Copying OpenCASCADE libs'
-        for libpath in _get_occ_libs(cas_root, cas_lib):
+        for libpath in _get_occ_libs(cas_root, cas_lib, tup):
             print libpath
             copy(libpath, join(pygem_libdir, basename(libpath)))
 
@@ -373,9 +385,10 @@ if __name__ == '__main__':
     pkgdir = os.path.join(dirname(abspath(__file__)), pkg_name)
 
     print 'Compiling cython files'
+    sys.stdout.flush()
     dbg = '--gdb' if options.debug else ''
     ret = subprocess.call("cython %s -v --fast-fail gem.pyx" % dbg,
-                           shell=True, env=os.environ,
+                           shell=True, env=os.environ, 
                            cwd=os.path.join(pkgdir,pkg_name))
     if ret != 0:
         sys.exit(ret)
@@ -390,7 +403,9 @@ if __name__ == '__main__':
     cmd = "%s setup.py build_ext %s -f" % (interp, arg)
     if options.inplace:
         cmd += " --inplace"
-    ret = subprocess.call(cmd, shell=True, env=os.environ, cwd=pkgdir)
+    sys.stdout.flush()
+    ret = subprocess.call(cmd, shell=True, env=os.environ, 
+                          cwd=pkgdir)
 
     if ret != 0:
         sys.exit(ret)
@@ -407,6 +422,7 @@ if __name__ == '__main__':
 
     # build a binary egg distribution
     if options.bdist_egg:
+        sys.stdout.flush()
         ret = subprocess.call("python setup.py bdist_egg",
                               shell=True, env=os.environ,
                               cwd=pkgdir)
@@ -415,6 +431,7 @@ if __name__ == '__main__':
 
         
     if options.develop:
+        sys.stdout.flush()
         ret = subprocess.call("%s setup.py develop" % interp,
                               shell=True, env=os.environ,
                               cwd=pkgdir)
@@ -423,6 +440,7 @@ if __name__ == '__main__':
         
     # build a source distribution
     if options.sdist:
+        sys.stdout.flush()
         ret = subprocess.call("python setup.py sdist",
                               shell=True, env=os.environ,
                               cwd=pkgdir)

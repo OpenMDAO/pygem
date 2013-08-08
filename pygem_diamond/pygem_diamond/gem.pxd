@@ -591,10 +591,12 @@ cdef extern from "gem.h":
     # the included BReps where the listed order is the index. Use gem_getModel to 
     # get the number of BReps and the actual BRep pointers. 
      #
-    int gem_getDRepInfo(gemDRep  *drep,         #  (in)  pointer to DRep #
-                    gemModel **model,       #  (out) owning Model pointer #
-                    int      *nbound,       #  (out) number of Bounds #
-                    int      *nattr)       #  (out) number of attributes #
+    int gem_getDRepInfo(gemDRep  *drep,  #  (in)  pointer to DRep #
+                    gemModel **model,    #  (out) owning Model pointer #
+                    int      *nIDs,      # (out) number of IDs in this DRep
+                    char     **IDs[],    # (out) pointer to FaceIDs
+                    int      *nbound,    #  (out) number of Bounds #
+                    int      *nattr)     #  (out) number of attributes #
 
 
     # #  get info about a Bound
