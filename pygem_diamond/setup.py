@@ -2,7 +2,6 @@
 from setuptools import setup, Extension
 #	from distutils.core import setup
 #from distutils.extension import Extension
-from Cython.Distutils import build_ext
 
 import os
 import sys
@@ -37,7 +36,7 @@ gem_libraries = ['gem', 'diamond', 'egads']
 gem_library_dirs = [gemlib, egadslib, caslib]
 
 if gem_arch.startswith('DARWIN'):
-    lib_stuff = ["lib/*.dylib"]
+    lib_stuff = ["lib/*.dylib", "lib/*.so"]
     if gem_arch == "DARWIN64":
         os.environ['ARCHFLAGS'] = '-arch x86_64'
     else:
@@ -58,14 +57,13 @@ module1 = Extension(pkg_name + '.gem',
                     library_dirs=gem_library_dirs,
                     libraries=gem_libraries,
                     extra_link_args=gem_extra_link_args,
-                    sources=["pygem_diamond/gem.pyx"])
+                    sources=["pygem_diamond/gem.c"])
 
 setup(
     name=pkg_name,
-    version='0.9.6',
+    version='0.9.9',
     description='Python interface to GEM using OpenCSM and EGADS',
     zip_safe=False,
-    cmdclass = {'build_ext': build_ext},
     ext_modules = [module1],
     packages=[pkg_name],
     package_dir={'': '.'},
@@ -74,9 +72,5 @@ setup(
         pkg_name: ['test/*.py', 'test/*.csm', 'test/*.col'] +
                     lib_stuff
     },
-    entry_points = """
-    [openmdao.parametric_geometry]
-    pygem_diamond.pygem.GEMParametricGeometry = pygem_diamond.pygem:GEMParametricGeometry
-    """
 )
 
