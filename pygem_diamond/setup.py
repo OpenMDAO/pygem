@@ -78,7 +78,7 @@ setup(
             'pygem_diamond.geometry.GEMParametricGeometry = pygem_diamond.geometry:GEMParametricGeometry'
         ],
         "openmdao.binpub": [
-            'pygem_diamond.geometry.GEM_Sender = pygem_diamond.geometry.diamond:GEM_Sender'
+            'pygem_diamond.geometry.GEM_Sender = pygem_diamond.geometry:GEM_Sender'
         ]
     }
 )
