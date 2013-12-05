@@ -61,16 +61,24 @@ module1 = Extension(pkg_name + '.gem',
 
 setup(
     name=pkg_name,
-    version='0.9.9',
+    version='0.9.10',
     description='Python interface to GEM using OpenCSM and EGADS',
     zip_safe=False,
     ext_modules = [module1],
     packages=[pkg_name],
     package_dir={'': '.'},
     include_package_data=True,
+    install_requires=['pyV3D', 'openmdao.lib'],
     package_data={
         pkg_name: ['test/*.py', 'test/*.csm', 'test/*.col'] +
                     lib_stuff
     },
+    entry_points = {
+        "openmdao.parametric_geometry": [
+            'pygem_diamond.geometry.GEMParametricGeometry = pygem_diamond.geometry:GEMParametricGeometry'
+        ],
+        "openmdao.binpub": [
+            'pygem_diamond.geometry.GEM_Sender = pygem_diamond.geometry.diamond:GEM_Sender'
+        ]
+    }
 )
-
