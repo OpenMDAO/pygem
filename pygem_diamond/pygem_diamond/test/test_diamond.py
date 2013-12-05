@@ -4,7 +4,6 @@ import tempfile
 import shutil
 
 import unittest
-import nose
 
 from pygem_diamond.geometry import GEMParametricGeometry
 
